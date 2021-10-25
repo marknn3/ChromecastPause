@@ -44,26 +44,10 @@
 #define ALTERNATIVE_IR_FEEDBACK_LED_PIN 6x // E.g. used for examples which use LED_BUILDIN for example output.
 #define IR_TIMING_TEST_PIN  7x
 
-
-
-//#define EXCLUDE_EXOTIC_PROTOCOLS // saves around 240 bytes program space if IrSender.write is used
-//#define SEND_PWM_BY_TIMER
-//#define USE_NO_SEND_PWM
-//#define EXCLUDE_UNIVERSAL_PROTOCOLS
-
-//#define DECODE_DENON        // Includes Sharp
-//#define DECODE_JVC
-//#define DECODE_KASEIKYO
-//#define DECODE_PANASONIC    // the same as DECODE_KASEIKYO
-//#define DECODE_LG
-//#define DECODE_NEC          // Includes Apple and Onkyo
-//#define DECODE_SAMSUNG
 #define DECODE_SONY
-//#define DECODE_RC5
-//#define DECODE_RC6
 #define DECODE_ML
 
-#define DEBUG
+//#define DEBUG
 
 #include "IRremote.h"
 
@@ -71,17 +55,23 @@
 #define DELAY_AFTER_LOOP 2000
 
 void setup() {
+#ifdef DEBUG
     Serial.begin(115200);
 #if defined(__AVR_ATmega32U4__) || defined(SERIAL_USB) || defined(SERIAL_PORT_USBVIRTUAL)  || defined(ARDUINO_attiny3217)
     delay(1000); // To be able to connect Serial monitor after reset or power up and before first print out. Do not wait for an attached Serial Monitor!
 #endif
     // Just to know which program is running on my Arduino
     Serial.println(F("START " __FILE__ " from " __DATE__ "\r\nUsing library version " VERSION_IRREMOTE));
+#endif
+
+    delay(1000); // To be able to connect Serial monitor after reset or power up and before first print out. Do not wait for an attached Serial Monitor!
 
     IrSender.begin(IR_SEND_PIN, ENABLE_LED_FEEDBACK); // Specify send pin and enable feedback LED at default feedback LED pin
 
+#ifdef DEBUG
     Serial.print(F("Ready to send IR signals at pin "));
     Serial.println(IR_SEND_PIN);
+#endif
 
 #if !defined(SEND_PWM_BY_TIMER) && !defined(USE_NO_SEND_PWM) && !defined(ESP32) // for esp32 we use PWM generation by ledcWrite() for each pin
     /*
@@ -99,10 +89,12 @@ void setup() {
 #endif
     IrReceiver.begin(IR_RECEIVE_PIN, ENABLE_LED_FEEDBACK);
 
+#ifdef DEBUG
     Serial.print(F("Ready to receive IR signals at pin "));
     Serial.println(IR_RECEIVE_PIN);
 
     Serial.setTimeout(100);
+#endif
 }
 
 /*
@@ -133,7 +125,9 @@ void loop() {
 //            delay(200);
 
     if (IrReceiver.decode()) {
+#ifdef DEBUG
         Serial.println();
+#endif
         if (IrReceiver.decodedIRData.flags & IRDATA_FLAGS_WAS_OVERFLOW) {
             IrReceiver.decodedIRData.flags = false; // yes we have recognized the flag :-)
             Serial.println(F("Overflow detected"));
@@ -214,6 +208,7 @@ void loop() {
 
     }
 
+#ifdef DEBUG
     char input[5];
     int charsRead;
     int val;
@@ -251,53 +246,7 @@ void loop() {
         IrReceiver.start();
       }
     }
-
-    
-  
-//    /*
-//     * Print values
-//     */
-//    Serial.println();
-//    Serial.print(F("address=0x"));
-//    Serial.print(sAddress, HEX);
-//    Serial.print(F(" command=0x"));
-//    Serial.print(sCommand, HEX);
-//    Serial.print(F(" repeats="));
-//    Serial.println(sRepeats);
-//    Serial.println();
-//    Serial.println();
-//    Serial.flush();
-//
-//
-//    Serial.println(F("Send Sony/SIRCS with 7 command and 5 address bits"));
-//    Serial.flush();
-//    IrSender.sendSony(sAddress & 0x1F, sCommand & 0x7F, sRepeats);
-//    //delay(DELAY_AFTER_SEND);
-//    /*
-//     * Increment values
-//     * Also increment address just for demonstration, which normally makes no sense
-//     */
-//    sAddress += 0x0101;
-//    sCommand += 0x11;
-//    sRepeats++;
-//    // clip repeats at 4
-//    if (sRepeats > 6) {
-//        sRepeats = 6;
-//    }
-//
-//  int incomingByte = 0; // for incoming serial data
-//
-//    // send data only when you receive data:
-//    if (Serial.available() > 0) {
-//      // read the incoming byte:
-//      incomingByte = Serial.read();
-//  
-//      // say what you got:
-//      Serial.print("I received: ");
-//      Serial.println(incomingByte, DEC);
-//    }
-//    
-//    delay(DELAY_AFTER_LOOP); // additional delay at the end of each loop
+#endif    
 }
 
 int StrToHex(char str[])
